@@ -1,0 +1,845 @@
+/* ═══════════════════════════════════════════════════════════════
+   Canvas View — Spatial thought layout with draggable cards
+   Now with zoom, NOW marker, thought numbers, tick/cross,
+   finished stack, and persistence badges
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Canvas Container ─── */
+#canvas-view {
+  flex-direction: column;
+}
+
+.canvas {
+  flex: 1;
+  width: 100%;
+  overflow: auto;
+  background-color: var(--bg-canvas);
+  background-image:
+    radial-gradient(circle, var(--border-color) 0.8px, transparent 0.8px);
+  background-size: 28px 28px;
+  cursor: grab;
+  position: relative;
+}
+
+.canvas.is-panning {
+  cursor: grabbing !important;
+  user-select: none;
+}
+
+.canvas.is-panning * {
+  pointer-events: none !important;
+}
+
+.canvas-content {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+  width: 2400px;
+  height: 1600px;
+  transition: transform 0.15s ease;
+}
+
+/* ─── Priority Zones ─── */
+.priority-zone {
+  position: absolute;
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: var(--space-md);
+  pointer-events: none;
+}
+
+.zone-label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+}
+
+.priority-zone-high {
+  top: 24px;
+  left: 24px;
+  width: calc(33.33% - 32px);
+  height: calc(100% - 48px);
+  background: linear-gradient(135deg, rgba(248,113,113,0.04) 0%, transparent 60%);
+  border: 1.5px dashed rgba(248,113,113,0.15);
+}
+
+.priority-zone-medium {
+  top: 24px;
+  left: calc(33.33% + 8px);
+  width: calc(33.33% - 32px);
+  height: calc(100% - 48px);
+  background: linear-gradient(135deg, rgba(251,191,36,0.04) 0%, transparent 60%);
+  border: 1.5px dashed rgba(251,191,36,0.15);
+}
+
+.priority-zone-low {
+  top: 24px;
+  left: calc(66.66% + 8px);
+  width: calc(33.33% - 32px);
+  height: calc(100% - 48px);
+  background: linear-gradient(135deg, rgba(52,211,153,0.04) 0%, transparent 60%);
+  border: 1.5px dashed rgba(52,211,153,0.15);
+}
+
+/* ─── Thought Card ─── */
+.thought-card {
+  position: absolute;
+  width: 260px;
+  min-height: 80px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  cursor: grab;
+  z-index: var(--z-card);
+  box-shadow: var(--shadow-md);
+  transition:
+    box-shadow var(--transition-base),
+    border-color var(--transition-base),
+    opacity var(--transition-base);
+  touch-action: none;
+  animation: scaleIn 0.25s ease;
+}
+
+.thought-card:hover,
+.thought-card.has-popover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent-primary-light);
+  z-index: 50; /* Ensure hovered card and its popovers render above everything else */
+}
+
+.thought-card.dragging {
+  cursor: grabbing;
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-card-dragging);
+  opacity: 0.92;
+  border-color: var(--accent-primary);
+}
+
+/* ─── NOW Marker ─── */
+.thought-card.marked-now {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-primary-light), var(--shadow-lg);
+  background: linear-gradient(135deg, #fafaff 0%, var(--bg-secondary) 100%);
+}
+
+.now-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-sm);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.now-pulse {
+  width: 6px;
+  height: 6px;
+  background: #fff;
+  border-radius: 50%;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ─── Thought Number ─── */
+.card-number {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  opacity: 0.6;
+  font-family: var(--font-family);
+}
+
+/* ─── Persistence Badge ─── */
+.persist-badge {
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 2px 0;
+  padding-left: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+/* Priority indicator (left border accent) */
+.thought-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  transition: background var(--transition-base);
+}
+
+.thought-card[data-priority="high"]::before {
+  background: var(--priority-high);
+}
+
+.thought-card[data-priority="medium"]::before {
+  background: var(--priority-medium);
+}
+
+.thought-card[data-priority="low"]::before {
+  background: var(--priority-low);
+}
+
+/* Card content */
+.card-content {
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  line-height: 1.6;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  margin-bottom: var(--space-sm);
+  padding-left: var(--space-sm);
+  max-height: 180px;
+  overflow: hidden;
+  position: relative;
+}
+
+.card-content::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 24px;
+  background: linear-gradient(transparent, var(--bg-secondary));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+}
+
+.thought-card.overflow .card-content::after {
+  opacity: 1;
+}
+
+/* Clickable URLs in card content */
+.card-link {
+  color: var(--accent-primary);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  word-break: break-all;
+}
+
+.card-link:hover {
+  border-bottom-color: var(--accent-primary);
+  opacity: 0.85;
+}
+
+/* Card tags */
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: var(--space-sm);
+  padding-left: var(--space-sm);
+}
+
+.card-tag {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  line-height: 1.4;
+}
+
+/* Card footer */
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  padding-left: var(--space-sm);
+  border-top: 1px solid var(--border-color-light);
+}
+
+.card-time {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.card-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.thought-card:hover .card-actions {
+  opacity: 1;
+}
+
+.card-action-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.card-action-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* Action-specific hover colors */
+.card-action-btn.tick-btn:hover {
+  background: var(--priority-low-bg);
+  color: var(--priority-low);
+}
+
+.card-action-btn.cross-btn:hover {
+  background: var(--priority-high-bg);
+  color: var(--priority-high);
+}
+
+.card-action-btn.now-btn.active {
+  color: var(--accent-primary);
+}
+
+.card-action-btn.now-btn:hover {
+  background: var(--accent-primary-light);
+  color: var(--accent-primary);
+}
+
+.card-action-btn.archive-btn:hover {
+  background: rgba(232, 152, 94, 0.12);
+  color: #e8985e;
+}
+
+/* ─── Compact Cards ─── */
+.compact-cards .thought-card {
+  min-height: 60px;
+  padding: var(--space-sm) var(--space-md);
+}
+
+.compact-cards .card-content {
+  max-height: 100px;
+  font-size: var(--font-size-sm);
+}
+
+/* ─── Finished Stack ─── */
+.finished-stack {
+  border-top: 1px solid var(--border-color-light);
+  background: var(--bg-secondary);
+}
+
+.finished-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 8px var(--space-lg);
+  border: none;
+  background: transparent;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.finished-toggle:hover {
+  background: var(--bg-tertiary);
+}
+
+.finished-toggle svg {
+  transition: transform var(--transition-base);
+}
+
+.finished-toggle.expanded svg {
+  transform: rotate(180deg);
+}
+
+.finished-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+.finished-list {
+  display: none;
+  flex-direction: column;
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 0 var(--space-lg) var(--space-md);
+  gap: var(--space-xs);
+}
+
+.finished-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  animation: slideUp 0.2s ease;
+  gap: var(--space-sm);
+}
+
+.finished-item::before {
+  content: '';
+  width: 3px;
+  height: 20px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.finished-item[data-priority="high"]::before { background: var(--priority-high); }
+.finished-item[data-priority="medium"]::before { background: var(--priority-medium); }
+.finished-item[data-priority="low"]::before { background: var(--priority-low); }
+
+.finished-item-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1;
+  min-width: 0;
+}
+
+.finished-num {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.finished-text {
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.finished-tags {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.finished-item-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.finished-time {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.finished-restore {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.finished-restore:hover {
+  background: var(--accent-primary-light);
+  color: var(--accent-primary);
+}
+
+/* ─── Canvas Empty State ─── */
+.canvas-empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  animation: fadeIn 0.6s ease;
+}
+
+.canvas-empty svg {
+  margin-bottom: var(--space-md);
+  opacity: 0.4;
+}
+
+.canvas-empty p {
+  color: var(--text-muted);
+  font-size: var(--font-size-md);
+}
+
+.canvas-empty p:last-child {
+  margin-top: var(--space-sm);
+  font-size: var(--font-size-sm);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Comment Cloud & Popover
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Cloud Button ─── */
+.comment-cloud {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  opacity: 0.45;
+  z-index: 5;
+}
+
+.thought-card:hover .comment-cloud {
+  opacity: 1;
+}
+
+.comment-cloud:hover {
+  background: var(--bg-tertiary);
+  opacity: 1 !important;
+}
+
+.comment-cloud.has-comments {
+  color: #10b981;
+  opacity: 0.85;
+}
+
+.thought-card:hover .comment-cloud.has-comments {
+  opacity: 1;
+}
+
+.comment-count {
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 14px;
+  text-align: center;
+}
+
+/* ─── Popover Container ─── */
+.comment-popover {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 12px);
+  width: 280px;
+  max-height: 340px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  animation: scaleIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  cursor: default;
+}
+
+/* ─── Popover Header ─── */
+.comment-popover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-color-light);
+  background: var(--bg-primary);
+}
+
+.comment-popover-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.comment-popover-close {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.comment-popover-close:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* ─── Comment List ─── */
+.comment-popover-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+  max-height: 220px;
+}
+
+.comment-empty {
+  text-align: center;
+  padding: 20px 14px;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+}
+
+/* ─── Individual Comment ─── */
+.comment-item {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border-color-light);
+  transition: background var(--transition-fast);
+}
+
+.comment-item:last-child {
+  border-bottom: none;
+}
+
+.comment-item:hover {
+  background: var(--bg-primary);
+}
+
+.comment-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.comment-text a {
+  color: var(--accent-primary);
+  text-decoration: none;
+}
+
+.comment-text a:hover {
+  text-decoration: underline;
+}
+
+.comment-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.comment-time {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.comment-edit-btn,
+.comment-delete-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transition: all var(--transition-fast);
+}
+
+.comment-item:hover .comment-edit-btn,
+.comment-item:hover .comment-delete-btn {
+  opacity: 1;
+}
+
+.comment-edit-btn:hover {
+  background: var(--bg-tertiary);
+}
+
+.comment-delete-btn:hover {
+  background: var(--priority-high-bg);
+}
+
+.comment-actions {
+  display: flex;
+  gap: 2px;
+}
+
+/* ─── Edit Row (inline editing) ─── */
+.comment-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.comment-edit-input {
+  flex: 1;
+  padding: 5px 8px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1.5px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+
+.comment-save-edit-btn,
+.comment-cancel-edit-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all var(--transition-fast);
+}
+
+.comment-save-edit-btn {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.comment-save-edit-btn:hover {
+  background: var(--accent-primary-hover);
+}
+
+.comment-cancel-edit-btn {
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+.comment-cancel-edit-btn:hover {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* ─── Add Comment Row ─── */
+.comment-add-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border-color-light);
+  background: var(--bg-primary);
+}
+
+.comment-add-input {
+  flex: 1;
+  padding: 6px 10px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.comment-add-input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-primary-light);
+}
+
+.comment-add-input::placeholder {
+  color: var(--text-muted);
+}
+
+.comment-add-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.comment-add-btn:hover {
+  background: var(--accent-primary-hover);
+  transform: scale(1.05);
+}
+
+/* ─── Priority Status Bar ─── */
+.priority-status-bar {
+  display: flex;
+  gap: var(--space-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  margin-left: var(--space-md);
+  align-items: center;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-high .status-dot { background: var(--priority-high); box-shadow: 0 0 6px var(--priority-high); }
+.status-medium .status-dot { background: var(--priority-medium); box-shadow: 0 0 6px var(--priority-medium); }
+.status-low .status-dot { background: var(--priority-low); box-shadow: 0 0 6px var(--priority-low); }
+
+.status-high { color: var(--priority-high); }
+.status-medium { color: var(--priority-medium); }
+.status-low { color: var(--priority-low); }

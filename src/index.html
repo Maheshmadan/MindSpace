@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MindSpace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/index.css">
+  <link rel="stylesheet" href="styles/auth.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/canvas.css">
+  <link rel="stylesheet" href="styles/timeline.css">
+  <link rel="stylesheet" href="styles/archives.css">
+  <link rel="stylesheet" href="styles/smartactions.css">
+  <link rel="stylesheet" href="styles/tools.css">
+  <link rel="stylesheet" href="styles/clipboard.css">
+  <link rel="stylesheet" href="styles/commander.css">
+  <link rel="stylesheet" href="styles/braindump.css">
+  <link rel="stylesheet" href="styles/workflows.css">
+  <link rel="stylesheet" href="styles/settings.css">
+</head>
+
+<body>
+
+  <!-- ─── Custom Title Bar ─── -->
+  <header id="titlebar">
+    <div class="titlebar-drag">
+      <div class="titlebar-logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 2a7 7 0 0 1 0 14 7 7 0 0 1 0-14" fill="currentColor" opacity="0.15" />
+          <circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.3" />
+        </svg>
+        <span class="titlebar-title">MindSpace</span>
+      </div>
+    </div>
+    <div class="titlebar-clock" id="titlebar-clock"></div>
+    <div class="titlebar-controls">
+      <button id="btn-fullscreen" class="titlebar-btn" aria-label="Fullscreen" title="Toggle Fullscreen (F11)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+        </svg>
+      </button>
+      <button id="btn-minimize" class="titlebar-btn" aria-label="Minimize">
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <rect y="5" width="12" height="1.5" rx="0.75" fill="currentColor" />
+        </svg>
+      </button>
+      <button id="btn-maximize" class="titlebar-btn" aria-label="Maximize">
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <rect x="1" y="1" width="10" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.5" />
+        </svg>
+      </button>
+      <button id="btn-close" class="titlebar-btn titlebar-btn-close" aria-label="Close">
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ─── Auth Screen ─── -->
+  <section id="auth-screen" class="view">
+    <div class="auth-container">
+      <div class="auth-orb"></div>
+      <div class="auth-card">
+        <div class="auth-logo">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 2a7 7 0 0 1 0 14 7 7 0 0 1 0-14" fill="var(--accent-primary)" opacity="0.12" />
+            <circle cx="12" cy="12" r="3" fill="var(--accent-primary)" opacity="0.25" />
+          </svg>
+        </div>
+        <h1 class="auth-title">MindSpace</h1>
+        <p class="auth-subtitle" id="auth-subtitle">Enter your password to unlock</p>
+        <form id="auth-form" autocomplete="off">
+          <div class="auth-input-wrapper">
+            <input type="password" id="auth-password" class="auth-input" placeholder="Password" autofocus
+              autocomplete="new-password" />
+            <button type="button" id="auth-toggle-vis" class="auth-toggle-vis" aria-label="Toggle password visibility">
+              <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+          </div>
+          <input type="password" id="auth-confirm" class="auth-input" placeholder="Confirm password"
+            style="display:none;" autocomplete="new-password" />
+          <p id="auth-error" class="auth-error"></p>
+          <button type="submit" id="auth-submit" class="auth-btn">Unlock</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Main App ─── -->
+  <section id="app-screen" class="view" style="display:none;">
+
+    <!-- Sidebar -->
+    <nav id="sidebar">
+      <div class="sidebar-nav">
+        <button class="sidebar-btn active" data-view="canvas" id="nav-canvas" aria-label="Canvas View">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="3" width="7" height="7" rx="1.5" />
+            <rect x="3" y="14" width="7" height="7" rx="1.5" />
+            <rect x="14" y="14" width="7" height="7" rx="1.5" />
+          </svg>
+          <span>Canvas</span>
+        </button>
+        <button class="sidebar-btn" data-view="timeline" id="nav-timeline" aria-label="Timeline View">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="2" x2="12" y2="22" />
+            <circle cx="12" cy="6" r="2.5" fill="currentColor" opacity="0.2" />
+            <circle cx="12" cy="12" r="2.5" fill="currentColor" opacity="0.2" />
+            <circle cx="12" cy="18" r="2.5" fill="currentColor" opacity="0.2" />
+            <line x1="15" y1="6" x2="20" y2="6" />
+            <line x1="4" y1="12" x2="9" y2="12" />
+            <line x1="15" y1="18" x2="20" y2="18" />
+          </svg>
+          <span>Timeline</span>
+        </button>
+        <button class="sidebar-btn" data-view="archives" id="nav-archives" aria-label="Archives">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 8v13H3V8"/>
+            <path d="M1 3h22v5H1z"/>
+            <path d="M10 12h4"/>
+          </svg>
+          <span>Archives</span>
+        </button>
+        <button class="sidebar-btn" data-view="tools" id="nav-tools" aria-label="Tools">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+          <span>Tools</span>
+        </button>
+        <button class="sidebar-btn" data-view="clipboard" id="nav-clipboard" aria-label="Clipboard">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+          </svg>
+          <span>Clipboard</span>
+          <span id="clipboard-badge" class="sidebar-badge" style="display:none;">0</span>
+        </button>
+        <button class="sidebar-btn" data-view="braindump" id="nav-braindump" aria-label="Brain Dump">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path>
+          </svg>
+          <span>Brain Dump</span>
+        </button>
+        <button class="sidebar-btn" data-view="settings" id="nav-settings" aria-label="Settings">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+          <span>Settings</span>
+        </button>
+      </div>
+      <div class="sidebar-bottom">
+        <button class="sidebar-btn" id="nav-lock" aria-label="Lock App">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          <span>Lock</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main id="main-content">
+
+      <!-- Top Bar -->
+      <div id="topbar">
+        <div class="topbar-left">
+          <h2 id="topbar-title" class="topbar-title">Canvas</h2>
+          <!-- Priority Status Bar in Topbar -->
+          <div id="priority-status-bar" class="priority-status-bar">
+            <div class="status-badge status-high"><span class="status-dot"></span><span id="count-high">0</span> High</div>
+            <div class="status-badge status-medium"><span class="status-dot"></span><span id="count-medium">0</span> Medium</div>
+            <div class="status-badge status-low"><span class="status-dot"></span><span id="count-low">0</span> Low</div>
+          </div>
+          <div id="tag-filters" class="tag-filters"></div>
+        </div>
+        <div class="topbar-right">
+          <!-- Zoom Controls (canvas only) -->
+          <div id="zoom-controls" class="zoom-controls">
+            <button id="zoom-out" class="zoom-btn" title="Zoom Out (Ctrl+-)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+            <span id="zoom-level" class="zoom-level">100%</span>
+            <button id="zoom-in" class="zoom-btn" title="Zoom In (Ctrl+=)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+            <button id="zoom-reset" class="zoom-btn" title="Reset Zoom">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </button>
+          </div>
+          <div class="search-wrapper" id="search-wrapper">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" id="search-input" class="search-input" placeholder="Search thoughts..." />
+          </div>
+        </div>
+      </div>
+
+      <!-- Canvas View -->
+      <div id="canvas-view" class="content-view active">
+        <div id="canvas" class="canvas">
+          <div id="canvas-content" class="canvas-content">
+            <!-- Priority zone labels -->
+            <div class="priority-zone priority-zone-high" data-priority="high">
+              <span class="zone-label">🔴 High Priority</span>
+            </div>
+            <div class="priority-zone priority-zone-medium" data-priority="medium">
+              <span class="zone-label">🟡 Medium Priority</span>
+            </div>
+            <div class="priority-zone priority-zone-low" data-priority="low">
+              <span class="zone-label">🟢 Low Priority</span>
+            </div>
+            <!-- Thought cards will be added here dynamically -->
+          </div>
+        </div>
+
+        <!-- Finished Stack (collapsible at bottom) -->
+        <div id="finished-stack" class="finished-stack">
+          <button id="finished-toggle" class="finished-toggle">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+            <span>Finished</span>
+            <span id="finished-count" class="finished-count">0</span>
+          </button>
+          <div id="finished-list" class="finished-list"></div>
+        </div>
+      </div>
+
+      <!-- Timeline View -->
+      <div id="timeline-view" class="content-view">
+        <div id="timeline-container" class="timeline-container">
+          <div id="timeline-content" class="timeline-content">
+            <!-- Timeline entries added dynamically -->
+          </div>
+          <div id="timeline-empty" class="timeline-empty">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <p>No thoughts yet</p>
+            <p class="text-muted">Press <kbd>Ctrl+N</kbd> to add your first thought</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Clipboard View ─── -->
+      <div id="clipboard-view" class="content-view">
+        <div class="clipboard-container">
+          <div class="clipboard-toolbar">
+            <span class="clipboard-toolbar-title">OS Clipboard History</span>
+            <button id="clipboard-clear" class="clipboard-clear-btn" onclick="ClipboardMgr.clearAll()">Clear All</button>
+          </div>
+          <div class="clipboard-list">
+            <div id="clipboard-grid" class="clipboard-grid"></div>
+            <div id="clipboard-empty" class="clipboard-empty visible">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.3">
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+              </svg>
+              <p>Clipboard is empty</p>
+              <p>Copy anything on your PC and it will appear here.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Brain Dump View ─── -->
+      <div id="braindump-view" class="content-view">
+        <div class="braindump-container">
+          <div class="braindump-input-area">
+            <h2 class="braindump-label">Daily Brain Dump</h2>
+            <p class="braindump-sublabel">Dump your chaotic thoughts, URLs, and tasks. The AI will sort them for you.</p>
+            <textarea id="braindump-input" class="braindump-textarea" placeholder="Start typing... e.g. 'I need to fix the login bug tomorrow. Also check out https://example.com for design inspiration.'"></textarea>
+            <div class="braindump-actions">
+              <button id="braindump-process" class="braindump-process-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+                </svg>
+                Process with AI
+              </button>
+              <button id="braindump-clear" class="braindump-clear-btn">Clear</button>
+              <button id="braindump-approve-all" class="braindump-approve-btn" style="display:none;">✓ Approve All</button>
+            </div>
+          </div>
+          <div id="braindump-results" class="braindump-results"></div>
+        </div>
+      </div>
+
+      <!-- ─── Archives View ─── -->
+      <div id="archives-view" class="content-view">
+        <div class="archives-container">
+          <div class="archives-toolbar">
+            <input type="text" id="archives-search" class="archives-search" placeholder="Search archives..." />
+            <button class="archives-vault-toggle" id="archives-vault-toggle" title="Toggle Vault">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </button>
+            <div id="archives-tag-filters" class="archives-tag-filters"></div>
+            <button class="archives-add-btn" id="archives-add-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Archive
+            </button>
+          </div>
+          <div class="archives-list">
+            <div id="archives-grid" class="archives-grid"></div>
+          </div>
+          <div id="archives-empty" class="archives-empty">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 8v13H3V8"/>
+              <path d="M1 3h22v5H1z"/>
+              <path d="M10 12h4"/>
+            </svg>
+            <p>No archives yet</p>
+            <p>Click <strong>+ Archive</strong> to save something for later</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Archive Create Modal -->
+      <div id="archive-modal-overlay" class="modal-overlay">
+        <div class="archive-modal">
+          <div class="archive-modal-header">
+            <h3 id="archive-modal-heading">Save to Archives</h3>
+            <button id="archive-modal-close" class="modal-close" aria-label="Close">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <div class="archive-field">
+            <label class="archive-field-label">Title</label>
+            <input type="text" id="archive-title" class="archive-field-input" placeholder="e.g. Useful CSS Grid article" />
+          </div>
+          <div class="archive-field">
+            <label class="archive-field-label">Content / URLs</label>
+            <textarea id="archive-content" class="archive-field-textarea" placeholder="Paste text, URLs, notes..."></textarea>
+          </div>
+          <div class="archive-field">
+            <label class="archive-field-label">Images</label>
+            <div id="archive-paste-area" class="archive-paste-area" tabindex="0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+              <span>Press <kbd>Ctrl+V</kbd> to paste screenshots</span>
+            </div>
+          </div>
+          <div class="archive-field">
+            <label class="archive-field-label">Tags</label>
+            <div id="archive-tag-list" class="tag-list"></div>
+            <div class="tag-create-wrapper">
+              <input type="text" id="archive-new-tag" class="tag-create-input" placeholder="+ new tag" />
+            </div>
+          </div>
+          <div class="quickadd-actions">
+            <button id="archive-modal-save" class="btn btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span id="archive-modal-save-text">Save</span>
+            </button>
+            <span class="quickadd-hint">or press <kbd>Ctrl+Enter</kbd></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image Lightbox -->
+      <div id="archive-lightbox" class="archive-lightbox"></div>
+
+      <!-- Archive Version History -->
+      <div id="archive-history-overlay" class="modal-overlay">
+        <div class="archive-modal" style="max-height: 80vh;">
+          <div class="archive-modal-header">
+            <h3>History — <span id="archive-history-item-title"></span></h3>
+            <button id="archive-history-close" class="modal-close" aria-label="Close">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <div id="archive-history-list" class="archive-history-list"></div>
+        </div>
+      </div>
+
+      <!-- Tools View -->
+      <div id="tools-view" class="content-view">
+        <div class="tools-container">
+          <div class="tools-toolbar">
+            <span class="tools-toolbar-title">Your imported tools & projects</span>
+            <button class="tools-add-btn" id="tools-add-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add Tool
+            </button>
+          </div>
+          <div class="tools-list">
+            <div id="tools-grid" class="tools-grid"></div>
+          </div>
+          <div id="tools-empty" class="tools-empty">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+            <p>No tools yet</p>
+            <p>Click <strong>+ Add Tool</strong> to import a project</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tool Iframe Container -->
+      <div id="tools-iframe-container" class="tools-iframe-container">
+        <div class="tools-iframe-header">
+          <span id="tools-iframe-title" class="tools-iframe-title"></span>
+          <div class="tools-iframe-actions">
+            <button id="tools-iframe-popout" class="tools-iframe-btn">↗ Pop Out</button>
+            <button id="tools-iframe-close" class="tools-iframe-btn tools-iframe-btn-close">✕ Close</button>
+          </div>
+        </div>
+        <iframe id="tools-iframe" class="tools-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+      </div>
+
+      <!-- Settings View -->
+      <div id="settings-view" class="content-view">
+        <div class="settings-container">
+          <div class="settings-content">
+            <!-- General Settings -->
+            <div class="settings-section">
+              <h3 class="settings-section-title">General</h3>
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-label">Default Priority</span>
+                  <span class="setting-desc">Default priority for new thoughts</span>
+                </div>
+                <select id="setting-defaultPriority" class="setting-select">
+                  <option value="high">High</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-label">Default Persistence</span>
+                  <span class="setting-desc">How new thoughts behave by default</span>
+                </div>
+                <select id="setting-defaultPersistence" class="setting-select">
+                  <option value="persistent" selected>Persistent (stays forever)</option>
+                  <option value="today">Today only</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Canvas Settings -->
+            <div class="settings-section">
+              <h3 class="settings-section-title">Canvas</h3>
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-label">Show Thought Numbers</span>
+                  <span class="setting-desc">Display #number on each thought card</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="setting-showThoughtNumbers" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-label">Compact Cards</span>
+                  <span class="setting-desc">Smaller thought cards on the canvas</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="setting-compactCards" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-label">Show Finished on Canvas</span>
+                  <span class="setting-desc">Show the finished stack at the bottom</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="setting-showFinishedOnCanvas" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-label">Auto-archive Expired</span>
+                  <span class="setting-desc">Automatically move old thoughts to archives</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="setting-autoArchiveExpired" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Workflows & Macros -->
+            <div class="settings-section">
+              <div class="settings-section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+                <h3 class="settings-section-title" style="margin-bottom: 0;">Workflows & Macros</h3>
+                <button id="workflow-add-btn" class="btn btn-primary" style="padding: 6px 14px; font-size: var(--font-size-sm);">+ Add Workflow</button>
+              </div>
+              <div id="workflows-list" class="workflows-list"></div>
+            </div>
+
+            <!-- AI Configuration -->
+            <div class="settings-section">
+              <h3 class="settings-section-title">AI Command Palette (Ctrl+K)</h3>
+              <div class="settings-group">
+                <label class="setting-label" for="setting-aiProvider">AI Provider</label>
+                <select id="setting-aiProvider" class="setting-select">
+                  <option value="openrouter">OpenRouter (Recommended)</option>
+                  <option value="groq">Groq (Fast)</option>
+                  <option value="gemini">Google Gemini</option>
+                </select>
+              </div>
+              <div class="settings-group">
+                <label class="setting-label" for="setting-aiApiKey">API Key</label>
+                <input type="password" id="setting-aiApiKey" class="setting-input" placeholder="sk-or-v1-..." style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px; font-family:var(--font-family); background:var(--bg-primary); color:var(--text-primary); margin-top:5px;" />
+              </div>
+              <div class="settings-group">
+                <label class="setting-label" for="setting-aiModel">Model (Optional)</label>
+                <input type="text" id="setting-aiModel" class="setting-input" placeholder="e.g. google/gemini-2.0-flash-001" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px; font-family:var(--font-family); background:var(--bg-primary); color:var(--text-primary); margin-top:5px;" />
+              </div>
+              <button id="setting-save-ai" class="btn btn-primary" style="margin-top:10px;">Save AI Settings</button>
+            </div>
+
+            <!-- Security Section -->
+            <div class="settings-section">
+              <h3 class="settings-section-title">Appearance</h3>
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-label">Animations</span>
+                  <span class="setting-desc">Enable smooth transitions and animations</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="setting-animationsEnabled" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-label">Canvas Zoom</span>
+                  <span class="setting-desc">Default zoom level for the canvas</span>
+                </div>
+                <div class="setting-zoom">
+                  <input type="range" id="setting-canvasZoom" min="40" max="150" value="100" class="setting-range" />
+                  <span id="setting-canvasZoom-label" class="setting-range-label">100%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Data Settings -->
+            <div class="settings-section">
+              <h3 class="settings-section-title">Security</h3>
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-label">Change Password</span>
+                  <span class="setting-desc">Update your app unlock password</span>
+                </div>
+                <button id="setting-change-password" class="btn btn-outline">Change</button>
+              </div>
+            </div>
+
+            <!-- Workflows Section -->
+            <div class="settings-section">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+                <h3 class="settings-section-title" style="margin-bottom: 0;">Commander Workflows</h3>
+                <button id="workflow-add-btn" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">+ Add Workflow</button>
+              </div>
+              <p style="font-size: 13px; color: var(--text-muted);">
+                Create macro sequences that run automatically when you type their trigger word in Commander or Spotlight.
+              </p>
+              <div id="workflow-list" class="workflow-list"></div>
+            </div>
+
+            <!-- Keyboard Shortcuts Reference -->
+            <div class="settings-section">
+              <h3 class="settings-section-title">Keyboard Shortcuts</h3>
+              <div class="shortcuts-grid">
+                <div class="shortcut-item"><kbd>Ctrl+N</kbd><span>New thought</span></div>
+                <div class="shortcut-item"><kbd>Ctrl+T</kbd><span>Toggle view</span></div>
+                <div class="shortcut-item"><kbd>Ctrl+F</kbd><span>Search</span></div>
+                <div class="shortcut-item"><kbd>Ctrl+L</kbd><span>Lock app</span></div>
+                <div class="shortcut-item"><kbd>F11</kbd><span>Fullscreen</span></div>
+                <div class="shortcut-item"><kbd>Ctrl+-</kbd><span>Zoom out</span></div>
+                <div class="shortcut-item"><kbd>Ctrl+=</kbd><span>Zoom in</span></div>
+                <div class="shortcut-item"><kbd>Esc</kbd><span>Close modal</span></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- FAB (Floating Action Button) -->
+    <button id="fab-add" class="fab" aria-label="Add new thought">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+        stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+      <span class="fab-text">What's on your mind?</span>
+    </button>
+
+  </section>
+
+  <!-- ─── Quick Add Modal ─── -->
+  <div id="quickadd-overlay" class="modal-overlay">
+    <div class="quickadd-modal">
+      <div class="quickadd-header">
+        <h3>What's on your mind?</h3>
+        <button id="quickadd-close" class="modal-close" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <textarea id="quickadd-input" class="quickadd-input" placeholder="Type your thought..." rows="4"
+        autofocus></textarea>
+      <div class="quickadd-options">
+        <div class="quickadd-row">
+          <div class="quickadd-priority">
+            <span class="option-label">Priority</span>
+            <div class="priority-buttons">
+              <button class="priority-btn priority-btn-high" data-priority="high" title="High">H</button>
+              <button class="priority-btn priority-btn-medium active" data-priority="medium" title="Medium">M</button>
+              <button class="priority-btn priority-btn-low" data-priority="low" title="Low">L</button>
+            </div>
+          </div>
+          <div class="quickadd-persistence">
+            <span class="option-label">Duration</span>
+            <div class="persistence-buttons">
+              <button class="persist-btn active" data-persist="persistent" title="Stays until completed">♾️
+                Keep</button>
+              <button class="persist-btn" data-persist="today" title="Only for today">📅 Today</button>
+              <button class="persist-btn" data-persist="until_date" title="Until a specific date">⏰ Until...</button>
+            </div>
+          </div>
+        </div>
+        <div id="quickadd-date-row" class="quickadd-date-row" style="display:none;">
+          <span class="option-label">Expires at</span>
+          <input type="datetime-local" id="quickadd-expires" class="date-input" />
+        </div>
+        <div class="quickadd-tags">
+          <span class="option-label">Tags</span>
+          <div id="quickadd-tag-list" class="tag-list"></div>
+          <div class="tag-create-wrapper">
+            <input type="text" id="quickadd-new-tag" class="tag-create-input" placeholder="+ new tag" />
+          </div>
+        </div>
+      </div>
+      <div class="quickadd-actions">
+        <button id="quickadd-save" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          Save thought
+        </button>
+        <button id="quickadd-autotag" class="btn btn-ai-autotag" title="AI auto-assigns priority & tags">
+          ✨ AI Auto-Tag
+        </button>
+        <span class="quickadd-hint">or press <kbd>Ctrl+Enter</kbd></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Card Edit Modal ─── -->
+  <div id="edit-overlay" class="modal-overlay">
+    <div class="edit-modal">
+      <div class="edit-header">
+        <h3>Edit Thought</h3>
+        <button id="edit-close" class="modal-close" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <textarea id="edit-input" class="quickadd-input" rows="4"></textarea>
+      <div class="quickadd-options">
+        <div class="quickadd-row">
+          <div class="quickadd-priority">
+            <span class="option-label">Priority</span>
+            <div class="priority-buttons">
+              <button class="edit-priority-btn priority-btn priority-btn-high" data-priority="high"
+                title="High">H</button>
+              <button class="edit-priority-btn priority-btn priority-btn-medium" data-priority="medium"
+                title="Medium">M</button>
+              <button class="edit-priority-btn priority-btn priority-btn-low" data-priority="low" title="Low">L</button>
+            </div>
+          </div>
+          <div class="quickadd-persistence">
+            <span class="option-label">Duration</span>
+            <div class="persistence-buttons">
+              <button class="edit-persist-btn persist-btn" data-persist="persistent">♾️ Keep</button>
+              <button class="edit-persist-btn persist-btn" data-persist="today">📅 Today</button>
+              <button class="edit-persist-btn persist-btn" data-persist="until_date">⏰ Until...</button>
+            </div>
+          </div>
+        </div>
+        <div id="edit-date-row" class="quickadd-date-row" style="display:none;">
+          <span class="option-label">Expires at</span>
+          <input type="datetime-local" id="edit-expires" class="date-input" />
+        </div>
+        <div class="quickadd-tags">
+          <span class="option-label">Tags</span>
+          <div id="edit-tag-list" class="tag-list"></div>
+        </div>
+      </div>
+      <div class="quickadd-actions">
+        <button id="edit-save" class="btn btn-primary">Save changes</button>
+        <button id="edit-delete" class="btn btn-danger">Delete</button>
+      </div>
+      <input type="hidden" id="edit-thought-id" />
+    </div>
+  </div>
+
+  <!-- ─── Password Change Modal ─── -->
+  <div id="password-overlay" class="modal-overlay">
+    <div class="quickadd-modal" style="width: 400px;">
+      <div class="quickadd-header">
+        <h3>Change Password</h3>
+        <button id="password-close" class="modal-close" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <input type="password" id="pw-current" class="auth-input" placeholder="Current password" />
+      <input type="password" id="pw-new" class="auth-input" placeholder="New password" />
+      <input type="password" id="pw-confirm" class="auth-input" placeholder="Confirm new password" />
+      <p id="pw-error" class="auth-error"></p>
+      <div class="quickadd-actions">
+        <button id="pw-save" class="btn btn-primary">Update Password</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Delete Protection Modal ─── -->
+  <div id="delete-protect-overlay" class="modal-overlay" style="display:none; opacity:0; z-index:9999;">
+    <div class="quickadd-modal" style="width: 350px;">
+      <div class="quickadd-header">
+        <h3 style="color:var(--priority-high)">Delete Archive</h3>
+        <button id="delete-protect-close" class="modal-close" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">Enter your app password to confirm deletion.</p>
+      <input type="password" id="delete-protect-password" class="auth-input" placeholder="Password" />
+      <p id="delete-protect-error" class="auth-error" style="margin-top:5px;"></p>
+      <div class="quickadd-actions" style="margin-top:15px;">
+        <button id="delete-protect-confirm" class="btn btn-danger">Confirm Delete</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ─── AI Command Palette Modal ─── -->
+  <div id="commander-overlay">
+    <div class="commander-panel">
+      <div class="commander-input-row">
+        <span class="commander-icon">✨</span>
+        <input type="text" id="commander-input" class="commander-input" placeholder="Type a command... (e.g. 'kill port 3000')" />
+        <span class="commander-hint"><kbd>Enter</kbd> to run</span>
+        <button id="commander-close" class="commander-close-btn">✕</button>
+      </div>
+      <div id="commander-results" class="commander-results"></div>
+    </div>
+  </div>
+
+  <!-- ─── Workflow Editor Modal ─── -->
+  <div id="workflow-editor-overlay" class="modal-overlay">
+    <div class="workflow-modal">
+      <div class="edit-header">
+        <h3 id="workflow-editor-heading">New Workflow</h3>
+        <button id="workflow-cancel-btn" class="modal-close" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="workflow-field">
+        <label>Trigger Keyword (Name)</label>
+        <input type="text" id="workflow-name" placeholder="e.g. setup coding" />
+      </div>
+      <div class="workflow-field">
+        <label>Description</label>
+        <input type="text" id="workflow-desc" placeholder="What does this do?" />
+      </div>
+
+      <div class="workflow-field">
+        <label>Steps</label>
+        <div id="workflow-steps" class="workflow-steps"></div>
+        <button id="workflow-add-step-btn" class="workflow-add-step">+ Add Step</button>
+      </div>
+
+      <div class="quickadd-actions" style="margin-top: 24px;">
+        <button id="workflow-save-btn" class="btn btn-primary">Save Workflow</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../node_modules/interactjs/dist/interact.min.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/tags.js"></script>
+  <script src="js/quickadd.js"></script>
+  <script src="js/canvas.js"></script>
+  <script src="js/timeline.js"></script>
+  <script src="js/archives.js"></script>
+  <script src="js/smartactions.js"></script>
+  <script src="js/tools.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/clipboard.js"></script>
+  <script src="js/commander.js"></script>
+  <script src="js/braindump.js"></script>
+  <script src="js/workflows.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- Context Menu -->
+  <div id="smart-context-menu"></div>
+
+</body>
+
+</html>

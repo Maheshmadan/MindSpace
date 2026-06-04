@@ -1,0 +1,191 @@
+/* ═══════════════════════════════════════════════════════════════
+   Brain Dump — Zen-mode textarea + categorized preview
+   ═══════════════════════════════════════════════════════════════ */
+
+#braindump-view { flex-direction: column; }
+
+.braindump-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+/* ─── Input Area ─── */
+.braindump-input-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-xl) var(--space-2xl);
+  min-height: 0;
+}
+
+.braindump-label {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.braindump-sublabel {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--space-md);
+}
+
+.braindump-textarea {
+  flex: 1;
+  min-height: 180px;
+  max-height: 40vh;
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  resize: none;
+  outline: none;
+  line-height: 1.7;
+  transition: border-color var(--transition-fast);
+}
+
+.braindump-textarea:focus {
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-glow-primary);
+}
+
+.braindump-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.braindump-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.braindump-process-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 24px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-inverse);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-md);
+}
+
+.braindump-process-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.braindump-clear-btn {
+  padding: 10px 18px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.braindump-clear-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.braindump-approve-btn {
+  padding: 10px 20px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-inverse);
+  background: var(--priority-low);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  margin-left: auto;
+  transition: all var(--transition-fast);
+}
+
+.braindump-approve-btn:hover {
+  filter: brightness(1.1);
+}
+
+/* ─── Results ─── */
+.braindump-results {
+  padding: 0 var(--space-2xl) var(--space-xl);
+  overflow-y: auto;
+  max-height: 40vh;
+}
+
+.braindump-item {
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-sm);
+  background: var(--bg-secondary);
+  animation: slideUp 0.2s ease;
+}
+
+.braindump-item-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.braindump-item-type {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.braindump-item-priority {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.braindump-item-remove {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.braindump-item-remove:hover {
+  color: var(--priority-high);
+  background: var(--priority-high-bg);
+}
+
+.braindump-item-content {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.braindump-item-tags {
+  display: flex;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}

@@ -1,0 +1,279 @@
+/* ═══════════════════════════════════════════════════════════════
+   Workflows — Macro builder & manager styles
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Workflow List in Settings ─── */
+.workflow-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.workflow-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.workflow-card:hover {
+  border-color: var(--accent-primary);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+}
+
+.workflow-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.workflow-card-name {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.workflow-card-trigger {
+  font-size: var(--font-size-xs);
+  color: var(--accent-primary);
+  font-family: monospace;
+  margin-top: 2px;
+}
+
+.workflow-card-desc {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.workflow-card-steps {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.workflow-card-actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.workflow-card-btn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all var(--transition-fast);
+}
+
+.workflow-card-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.workflow-card-btn.delete:hover {
+  color: var(--priority-high);
+}
+
+.workflow-card-btn.play:hover {
+  color: var(--accent-mint);
+}
+
+/* ─── Workflow Builder Modal ─── */
+.workflow-modal {
+  width: 520px;
+  max-width: 90vw;
+  max-height: 80vh;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  padding: var(--space-lg);
+  overflow-y: auto;
+  transform: scale(0.95) translateY(10px);
+  transition: transform var(--transition-base);
+}
+
+.modal-overlay.visible .workflow-modal {
+  transform: scale(1) translateY(0);
+}
+
+.workflow-field {
+  margin-bottom: var(--space-md);
+}
+
+.workflow-field label {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-xs);
+}
+
+.workflow-field input,
+.workflow-field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.workflow-field input:focus,
+.workflow-field textarea:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-primary-light);
+}
+
+/* ─── Step List ─── */
+.workflow-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.workflow-step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-sm);
+}
+
+.workflow-step-num {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-inverse);
+  background: var(--accent-primary);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.workflow-step select {
+  padding: 6px 8px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+
+.workflow-step input {
+  flex: 1;
+  padding: 6px 8px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+
+.workflow-step-remove {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.workflow-step-remove:hover {
+  color: var(--priority-high);
+  background: var(--priority-high-bg);
+}
+
+.workflow-add-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--accent-primary);
+  background: var(--accent-primary-light);
+  border: 1px dashed var(--accent-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.workflow-add-step:hover {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border-style: solid;
+}
+
+/* ─── Commander workflow match hint ─── */
+.commander-workflow-match {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--accent-primary-light);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.commander-workflow-match:hover {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+}
+
+.commander-workflow-match .wf-icon {
+  font-size: 16px;
+}
+
+.commander-workflow-match .wf-name {
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+}
+
+.commander-workflow-match .wf-desc {
+  font-size: var(--font-size-xs);
+  opacity: 0.7;
+}
+
+.commander-workflow-match .wf-hint {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  opacity: 0.6;
+}

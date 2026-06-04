@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: transparent;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      -webkit-app-region: no-drag;
+    }
+
+    .spotlight-bar {
+      width: 580px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 16px;
+      position: relative; /* Crucial for absolute positioning of ghost */
+      box-shadow:
+        0 8px 32px rgba(0,0,0,0.12),
+        0 2px 8px rgba(0,0,0,0.06),
+        0 0 0 1px rgba(255,255,255,0.5) inset;
+      animation: spotlightIn 0.18s ease-out;
+    }
+
+    @keyframes spotlightIn {
+      from { opacity: 0; transform: scale(0.95) translateY(-8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .spotlight-icon {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6366f1;
+      opacity: 0.7;
+    }
+
+    .spotlight-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      color: #1e293b;
+      letter-spacing: -0.01em;
+    }
+
+    .spotlight-input::placeholder {
+      color: #94a3b8;
+      font-weight: 400;
+    }
+
+    .spotlight-hint {
+      flex-shrink: 0;
+      font-size: 11px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .spotlight-hint kbd {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+    }
+
+    .spotlight-type {
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: #e0e1fc;
+      color: #6366f1;
+      transition: all 0.15s ease;
+    }
+
+    .spotlight-type.archive {
+      background: #fdf0e4;
+      color: #e8985e;
+    }
+
+    .spotlight-type.image {
+      background: #e0fcf5;
+      color: #10b981;
+    }
+
+    .spotlight-type.search {
+      background: #fce7f3;
+      color: #db2777; /* Pinkish color for Google Search */
+    }
+
+    .spotlight-ghost {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 60px; /* 20px padding + 28px icon + 12px gap = 60px */
+      width: calc(100% - 150px);
+      height: 100%;
+      background: transparent;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      color: #94a3b8; /* Ghost color */
+      pointer-events: none;
+      z-index: 0;
+      padding: 0;
+      margin: 0;
+    }
+
+    /* Make main input transparent background so ghost shows through */
+    .spotlight-input {
+      background: transparent;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Results Dropdown */
+    .spotlight-results {
+      max-height: 300px;
+      overflow-y: auto;
+      border-top: 1px solid #e2e8f0;
+      display: none;
+    }
+    .spotlight-results.visible {
+      display: block;
+    }
+    .result-item {
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .result-item.selected, .result-item:hover {
+      background: #f8fafc;
+    }
+    .result-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .result-path {
+      font-size: 11px;
+      color: #64748b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+</head>
+<body>
+  <div class="spotlight-bar">
+    <div class="spotlight-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 2a7 7 0 0 1 0 14 7 7 0 0 1 0-14" fill="currentColor" opacity="0.15"/>
+      </svg>
+    </div>
+    <input
+      id="spotlight-ghost"
+      class="spotlight-ghost"
+      type="text"
+      disabled
+    />
+    <input
+      id="spotlight-input"
+      class="spotlight-input"
+      type="text"
+      placeholder="Capture a thought, URL, or paste an image..."
+      autofocus
+    />
+    <span id="spotlight-type" class="spotlight-type">Thought</span>
+    <span class="spotlight-hint"><kbd>Esc</kbd> close</span>
+  </div>
+  <div id="spotlight-results" class="spotlight-results"></div>
+
+  <script>
+    const input = document.getElementById('spotlight-input');
+    const ghost = document.getElementById('spotlight-ghost');
+    const typeLabel = document.getElementById('spotlight-type');
+    const resultsContainer = document.getElementById('spotlight-results');
+    let pastedImage = null;
+    let loadedWorkflows = [];
+    let currentWorkflowMatch = null;
+    let searchMode = false;
+    
+    // File search state
+    let fileResults = [];
+    let selectedFileIndex = -1;
+    let searchTimeout = null;
+
+    // Load workflows on startup
+    window.spotlightAPI.getWorkflows().then(wfs => {
+      loadedWorkflows = wfs;
+    });
+
+    // Detect content type as user types
+    input.addEventListener('input', () => {
+      const val = input.value;
+      const trimVal = val.trim();
+      currentWorkflowMatch = null;
+      ghost.value = '';
+
+      if (searchMode) {
+        typeLabel.textContent = 'Google Search';
+        typeLabel.className = 'spotlight-type search';
+        typeLabel.style.background = '';
+        typeLabel.style.color = '';
+        resultsContainer.classList.remove('visible');
+        return;
+      }
+
+      if (!val) {
+        typeLabel.textContent = 'Thought';
+        typeLabel.className = 'spotlight-type';
+        typeLabel.style.background = '';
+        typeLabel.style.color = '';
+        resultsContainer.classList.remove('visible');
+        return;
+      }
+
+      // Check for file search prefix
+      if (val.toLowerCase().startsWith('find: ')) {
+        typeLabel.textContent = 'Local File';
+        typeLabel.className = 'spotlight-type';
+        typeLabel.style.background = '#e0e7ff';
+        typeLabel.style.color = '#4338ca';
+        
+        const query = val.substring(6).trim();
+        clearTimeout(searchTimeout);
+        if (!query) {
+          resultsContainer.classList.remove('visible');
+          return;
+        }
+        
+        // Indicate loading
+        resultsContainer.innerHTML = '<div style="padding: 12px 16px; color: #64748b; font-size: 13px;">Searching hard drive...</div>';
+        resultsContainer.classList.add('visible');
+        
+        searchTimeout = setTimeout(async () => {
+          fileResults = await window.spotlightAPI.searchLocalFiles(query);
+          selectedFileIndex = -1;
+          renderResults();
+        }, 400);
+        return;
+      } else {
+        resultsContainer.classList.remove('visible');
+      }
+
+      // Check if it matches a workflow start
+      if (trimVal.length > 0) {
+        const match = loadedWorkflows.find(w => w.name.toLowerCase().startsWith(trimVal.toLowerCase()));
+        if (match) {
+          currentWorkflowMatch = match;
+          // Preserve exactly what they typed, plus the remainder of the match
+          const remainder = match.name.substring(val.length);
+          ghost.value = val + remainder;
+          
+          typeLabel.textContent = 'Workflow';
+          typeLabel.className = 'spotlight-type';
+          typeLabel.style.background = '#e2e8f0';
+          typeLabel.style.color = '#334155';
+          return;
+        }
+      }
+
+      if (val.startsWith('/')) {
+        typeLabel.textContent = 'Workflow';
+        typeLabel.className = 'spotlight-type';
+        typeLabel.style.background = '#e2e8f0';
+        typeLabel.style.color = '#334155';
+      } else if (/^https?:\/\//i.test(trimVal)) {
+        typeLabel.textContent = 'Archive';
+        typeLabel.className = 'spotlight-type archive';
+        typeLabel.style.background = '';
+        typeLabel.style.color = '';
+      } else {
+        typeLabel.textContent = 'Thought';
+        typeLabel.className = 'spotlight-type';
+        typeLabel.style.background = '';
+        typeLabel.style.color = '';
+      }
+    });
+
+    // Handle paste (images)
+    document.addEventListener('paste', (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const blob = item.getAsFile();
+          const reader = new FileReader();
+          reader.onload = () => {
+            pastedImage = reader.result;
+            typeLabel.textContent = 'Image';
+            typeLabel.className = 'spotlight-type image';
+            input.placeholder = '📷 Image captured — add a note or press Enter';
+          };
+          reader.readAsDataURL(blob);
+          return;
+        }
+      }
+    });
+
+    function renderResults() {
+      if (!fileResults || fileResults.length === 0) {
+        resultsContainer.innerHTML = '<div style="padding: 12px 16px; color: #64748b; font-size: 13px;">No files found.</div>';
+        return;
+      }
+      
+      resultsContainer.innerHTML = fileResults.map((f, i) => `
+        <div class="result-item ${i === selectedFileIndex ? 'selected' : ''}" data-index="${i}">
+          <div class="result-name">${f.Name}</div>
+          <div class="result-path">${f.Path}</div>
+        </div>
+      `).join('');
+      
+      // Allow click
+      resultsContainer.querySelectorAll('.result-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const idx = parseInt(el.dataset.index);
+          window.spotlightAPI.openFile(fileResults[idx].Path);
+          window.spotlightAPI.close();
+        });
+      });
+    }
+
+    // Submit on Enter & arrow navigation
+    input.addEventListener('keydown', (e) => {
+      // Toggle Search Mode with Tab
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        searchMode = !searchMode;
+        // Trigger input event to re-evaluate the label
+        input.dispatchEvent(new Event('input'));
+        return;
+      }
+
+      // Arrow navigation for file results
+      if (resultsContainer.classList.contains('visible') && fileResults.length > 0) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          selectedFileIndex = Math.min(selectedFileIndex + 1, fileResults.length - 1);
+          renderResults();
+          return;
+        }
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          selectedFileIndex = Math.max(selectedFileIndex - 1, -1);
+          renderResults();
+          return;
+        }
+      }
+
+      // Autocomplete / execute ghost text / execute file
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        
+        const val = input.value.trim();
+
+        // If in Google Search mode
+        if (searchMode && val) {
+          const searchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(val);
+          window.spotlightAPI.openUrl(searchUrl);
+          window.spotlightAPI.close();
+          return;
+        }
+
+        // If searching files and one is selected
+        if (resultsContainer.classList.contains('visible') && selectedFileIndex >= 0 && fileResults[selectedFileIndex]) {
+          window.spotlightAPI.openFile(fileResults[selectedFileIndex].Path);
+          window.spotlightAPI.close();
+          return;
+        }
+
+        // If there's an active workflow match from autocomplete, execute it instantly!
+        if (currentWorkflowMatch) {
+          window.spotlightAPI.executeWorkflow(currentWorkflowMatch.name);
+          window.spotlightAPI.close();
+          return;
+        }
+
+        if (!val && !pastedImage) return;
+
+        if (val.startsWith('/')) {
+          const workflowName = val.substring(1).trim();
+          window.spotlightAPI.executeWorkflow(workflowName);
+        } else {
+          const isUrl = /^https?:\/\//i.test(val);
+
+          if (pastedImage || isUrl) {
+            // Save as archive
+            window.spotlightAPI.saveArchive({
+              title: val || 'Quick Capture',
+              content: val,
+              images: pastedImage ? [pastedImage] : [],
+              tags: ['spotlight'],
+            });
+          } else {
+            // Save as thought
+            window.spotlightAPI.saveThought({
+              content: val,
+              priority: 'medium',
+              persistence: 'persistent',
+              tags: ['spotlight'],
+            });
+          }
+        }
+
+        window.spotlightAPI.close();
+      }
+
+      if (e.key === 'Escape') {
+        window.spotlightAPI.close();
+      }
+    });
+
+    // Auto-focus
+    window.addEventListener('focus', () => input.focus());
+  </script>
+</body>
+</html>

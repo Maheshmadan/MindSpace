@@ -1,0 +1,20 @@
+{
+  "name": "mindspace",
+  "version": "1.0.0",
+  "description": "MindSpace — Your mind, extended. A minimalist productivity desktop app.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev"
+  },
+  "author": "ABeezzz LABS",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.0.0"
+  },
+  "dependencies": {
+    "nedb-promises": "^6.2.3",
+    "bcryptjs": "^2.4.3",
+    "interactjs": "^1.10.27"
+  }
+}
